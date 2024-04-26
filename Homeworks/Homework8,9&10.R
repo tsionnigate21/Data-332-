@@ -10,21 +10,30 @@ library(devtools)
 parenvs(all = TRUE)
 
 # download and load the deck.csv file to complete the following exercises
-deck <- read.csv('~/Desktop/DATA332R /deck.csv')
+deck <- read.csv('~/Documents/DATA/Data 332/files given/deck.csv')
 
-# Chapter 8; the S3 system
+# Chapter 8 
+#the S3 system
 num <- 1000000000
 print(num)
+
+#to desplay time
 class(num) <- c("POSIXct", "POSIXt")
 print(num)
 
+# to see an object’s attributes with attribute
 attributes(deck)
 row.names(deck)
+
+#to change an attribute’s value:
 row.names(deck) <- 101:152
+
+# to give an object a new attribute altogether
 levels(deck) <- c("level 1", "level 2", "level 3")
 attributes(deck)
 
-# Exercise 1, Modify play to return a prize that contains the symbols associated with it as an attribute named symbols
+# Exercise 1, (Modify play to return a prize that contains the symbols associated with it as an attribute named symbols)
+#from chap 6&7
 get_symbols <- function() {
   wheel <- c("DD", "7", "BBB", "BB", "B", "C", "0")
   sample(wheel, size = 3, replace = TRUE,
@@ -37,12 +46,12 @@ play <- function() {
   print(symbols)
   score(symbols)
 }
-
+# to generate a prize and set its attributes in one step with the structure function
 play <- function() {
   symbols <- get_symbols()
   structure(score(symbols), symbols = symbols)
 }
-
+#to write your own functions that lookup and use the attribute
 play <- function() {
   symbols <- get_symbols()
   prize <- score(symbols)
@@ -50,15 +59,27 @@ play <- function() {
   prize
 }
 one_play <- play()
+
 slot_display <- function(prize){
   symbols <- attr(prize, "symbols")
   symbols <- paste(symbols, collapse = " ")
   cat(string)
 }
-slot_display(one_play)
 
+slot_display(one_play)
+#We can use one_play’s symbols attribute to do the job
 symbols <- attr(one_play, "symbols")
 symbols
+
+symbols <- paste(symbols, collapse = " ")
+symbols
+
+prize <- one_play
+string <- paste(symbols, prize, sep = "\n$")
+string
+# We can use slot_display to manually clean up the output of play
+slot_display(play())
+slot_display(play())
 
 # Generic function
 print(pi)
@@ -87,7 +108,8 @@ play <- function() {
 
 class(play())
 
-# Chapter 9, loops
+# Chapter 9
+#old die
 die <- c(1, 2, 3, 4, 5, 6)
 rolls <- expand.grid(die, die)
 rolls
@@ -97,7 +119,10 @@ head(rolls, 3)
 prob <- c("1" = 1/8, "2" = 1/8, "3" = 1/8, "4" = 1/8, "5" = 1/8, "6" = 3/8)
 prob
 rolls$Var1
+#The expand.grid function
+rolls <- expand.grid(die, die)
 
+#three-step process for calculating these probabilities in R
 rolls$prob1 <- prob[rolls$Var1]
 head(rolls, 3)
 
@@ -108,8 +133,8 @@ rolls$prob <- rolls$prob1 * rolls$prob2
 head(rolls, 3)
 sum(rolls$value * rolls$prob)
 
-# Exercise 1, Use expand.grid to make a data frame that contains every possible combination of three symbols from the wheel vector:
-
+# Exercise 1
+#Use expand.grid to make a data frame that contains every possible combination of three symbols from the wheel vector
 wheel <- c("DD", "7", "BBB", "BB", "B", "C", "0")
 combos <- expand.grid(wheel, wheel, wheel, stringsAsFactors = FALSE)
 combos
@@ -120,7 +145,8 @@ get_symbols <- function() {
          prob = c(0.03, 0.03, 0.06, 0.1, 0.25, 0.01, 0.52))
 }
 
-# Exercise 2, Isolate the previous probabilities in a lookup table. What names will you use in your table?
+# Exercise 2
+#Isolate the previous probabilities in a lookup table. What names will you use in your table?
 prob <- c("DD" = 0.03, "7" = 0.03, "BBB" = 0.06,
           "BB" = 0.1, "B" = 0.25, "C" = 0.01, "0" = 0.52)
 
@@ -156,7 +182,7 @@ for (i in c("My", "second", "for", "loop")) {
   print(i)
 }
 
-
+#The next loop will fill it with strings
 chars <- vector(length = 4)
 words <- c("My", "fourth", "for", "loop")
 for (i in 1:4) {
@@ -189,7 +215,20 @@ n
 }
 plays_till_broke(100)
 
-# Chapter 10, Speed
+#repeat Loops
+plays_till_broke <- function(start_with) { cash <- start_with
+n<-0
+repeat {
+  cash <- cash - 1 + play() n<-n+1 
+  if(cash<=0){
+    break
+  } }
+n
+}
+plays_till_broke(100)
+
+
+# Chapter 10, Vectorized Code
 abs_loop <- function(vec){
   for (i in 1:length(vec)) {
     if (vec[i] < 0) { vec[i] <- -vec[i]
@@ -198,16 +237,24 @@ abs_loop <- function(vec){
   vec
 }
 
+#vectorized version of abs_loop
 abs_sets <- function(vec){
   negs <- vec < 0
   vec[negs] <- vec[negs] * -1
   vec
 }
 
+#To compare abs_loop and abs_set
 long <- rep(c(-1, 1), 5000000)
+
+# system.time to measure how much time it takes each function to evaluate long
+system.time(abs_loop(long))
+system.time(abs_sets(long))
 
 # Exercise 1, Many preexisting R functions are already vectorized and have been optimized to per‐ form quickly.
 system.time(abs(long))
+
+#How to Write Vectorized Code
 vec <- c(1, -2, 3, -4, 5, -6, 7, -8, 9, -10)
 vec < 0
 vec[vec < 0]
@@ -231,7 +278,31 @@ change_symbols(vec)
 many <- rep(vec, 1000000)
 system.time(change_symbols(many))
 
-# Write fast for loops in R
+#create a logical test that can identify each case
+vec[vec == "DD"]
+vec[vec == "C"]
+vec[vec == "7"]
+vec[vec == "B"]
+vec[vec == "BB"] 
+vec[vec == "BBB"] 
+vec[vec == "0"]
+
+vec[vec == "DD"] <- "joker"
+vec[vec == "C"] <- "ace"
+vec[vec == "7"] <- "king"
+vec[vec == "B"] <- "queen"
+vec[vec == "BB"] <- "jack"
+vec[vec == "BBB"] <- "ten"
+vec[vec == "0"] <- "nine"
+
+change_vec2 <- function(vec){
+  tb <- c("DD" = "joker", "C" = "ace", "7" = "king", "B" = "queen",
+          "BB" = "jack", "BBB" = "ten", "0" = "nine")
+  unname(tb[vec])
+}
+system.time(change_vec(many))
+
+# How to write fast for loops in R
 
 system.time(
   output <- rep(NA, 1000000),
